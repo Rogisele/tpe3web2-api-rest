@@ -1,49 +1,44 @@
 <?php
-    function createJWT($payload) {
-        // Header
-        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
-        // Payload
-        $payload = json_encode($payload);
+// Clave secreta para firmar el token (ideal: usar variable de entorno)
+define('JWT_SECRET', 'mi1secreto');
 
-        // Base64Url
-        $header = base64_encode($header);
-        $header = str_replace(['+', '/', '='], ['-', '_', ''], $header);
-        $payload = base64_encode($payload);
-        $payload = str_replace(['+', '/', '='], ['-', '_', ''], $payload);
+// Codifica en Base64URL
+function base64url_encode($data) {
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
 
-        // Firma
-        $signature = hash_hmac('sha256', $header . "." . $payload, 'mi1secreto', true);
-        $signature = base64_encode($signature);
-        $signature = str_replace(['+', '/', '='], ['-', '_', ''], $signature);
-
-        // JWT
-        $jwt = $header . "." . $payload . "." . $signature;
-        return $jwt;
+// Decodifica Base64URL
+function base64url_decode($data) {
+    $remainder = strlen($data) % 4;
+    if ($remainder) {
+        $data .= str_repeat('=', 4 - $remainder);
     }
-/*
-    function validateJWT($jwt) {
-        $jwt = explode('.', $jwt);
-        if(count($jwt) != 3) {
-            return null;
-        }
-        $header = $jwt[0];
-        $payload = $jwt[1];
-        $signature = $jwt[2];
+    return base64_decode(strtr($data, '-_', '+/'));
+}
 
-        $valid_signature = hash_hmac('sha256', $header . "." . $payload, 'mi1secreto', true);
-        $valid_signature = base64_encode($valid_signature);
-        $valid_signature = str_replace(['+', '/', '='], ['-', '_', ''], $valid_signature);
+// Crea un JWT válido
+function createJWT($payload) {
+    $header = base64url_encode(json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
+    $payload = base64url_encode(json_encode($payload));
+    $signature = base64url_encode(hash_hmac('sha256', "$header.$payload", JWT_SECRET, true));
+    return "$header.$payload.$signature";
+}
 
-        if($signature != $valid_signature) {
-            return null;
-        }
+// Valida un JWT y devuelve el payload si es válido
+function validateJWT($jwt) {
+    $parts = explode('.', $jwt);
+    if (count($parts) !== 3) return null;
 
-        $payload = base64_decode($payload);
-        $payload = json_decode($payload);
+    [$header, $payload, $signature] = $parts;
 
-        if($payload->exp < time()) {
-            return null;
-        }
+    $valid_signature = base64url_encode(hash_hmac('sha256', "$header.$payload", JWT_SECRET, true));
+    if (!hash_equals($valid_signature, $signature)) return null;
 
-        return $payload;
+    $decoded_payload = json_decode(base64url_decode($payload));
+    if (!isset($decoded_payload->exp) || !is_numeric($decoded_payload->exp) || $decoded_payload->exp < time()) {
+        return null;
     }
+
+    return $decoded_payload;
+}
+?>
