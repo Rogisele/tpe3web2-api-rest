@@ -145,3 +145,23 @@ Podés importar los endpoints en POSTMAN y probar:
 - La base de datos se autogenera si no existen tablas (_deploy() en los modelos).
 - Las relaciones están normalizadas: cada capítulo pertenece a una temporada (ID_temporada_fk).
 - El proyecto está preparado para escalar y modularizarse fácilmente.
+🧪 Paso 3: Testeo en POSTMAN
+- URL: http://localhost/tpe3web2-api-rest/login
+- Método: POST
+- Body (raw JSON):
+{
+  "usuario": "webadmin",
+  "contraseña": "webadmin"
+}
+
+
+- Respuesta esperada:
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+
+
+
+🛡️ Paso 4: Usar el token en endpoints protegidos
+En POSTMAN, agregá este header:
+Authorization: Bearer tu_token_jwt
