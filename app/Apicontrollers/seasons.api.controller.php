@@ -2,6 +2,7 @@
 require_once './app/Apimodels/seasons.model.php';
 require_once './app/Apiviews/apiview.php';
 require_once './app/Apimodels/chapters.model.php';
+require_once './libs/auth.middleware.php';
 
 class SeasonController {
 
@@ -17,11 +18,12 @@ class SeasonController {
         $this->data = file_get_contents("php://input");
     }
 
-    function getData(){
+    function getData() {
         return json_decode($this->data);
     }
 
-    function listCategories($req){
+    // ✅ Público
+    function listCategories($req) {
         $seasons = $this->model->listCategories($req);
         if ($seasons) {
             $this->view->response($seasons, 200);
@@ -30,7 +32,8 @@ class SeasonController {
         }
     }
 
-    function listCategoriesById($req){
+    // ✅ Público
+    function listCategoriesById($req) {
         $season = $this->model->listCategoriesById($req);
         if ($season) {
             $this->view->response($season, 200);
@@ -39,7 +42,9 @@ class SeasonController {
         }
     }
 
-    function addSeason(){
+    // 🔐 Protegido
+    function addSeason() {
+        checkAuth(); // Verifica token antes de crear
         $data = $this->getData();
         if (isset($data->Nombre) && isset($data->Fecha_estreno) && isset($data->Productora) && isset($data->imagen)) {
             $newId = $this->model->addSeason($data);
@@ -49,14 +54,16 @@ class SeasonController {
         }
     }
 
-    function updateSeason($req){
+    // 🔐 Protegido
+    function updateSeason($req) {
+        checkAuth(); // Verifica token antes de modificar
         $id = $req->params->id;
         $season = $this->model->listCategoriesById($req);
         if (!$season) {
             return $this->view->response("La temporada con el id=$id no existe", 404);
         }
 
-        $req->body = $this->getData(); // ✅ Agregado para pasar datos al modelo
+        $req->body = $this->getData(); // Pasa datos al modelo
 
         if ($this->model->updateSeason($req)) {
             $this->view->response(["message" => "Temporada actualizada con éxito"], 200);
@@ -65,7 +72,9 @@ class SeasonController {
         }
     }
 
-    function deleteSeason($req){
+    // 🔐 Protegido
+    function deleteSeason($req) {
+        checkAuth(); // Verifica token antes de eliminar
         $this->deleteChaperSeason($req);
         if ($this->model->deleteSeason($req)) {
             $this->view->response(["message" => "Temporada eliminada con éxito"], 200);
@@ -74,7 +83,9 @@ class SeasonController {
         }
     }
 
-    function deleteChaperSeason($req){
+    // 🔐 Protegido
+    function deleteChaperSeason($req) {
+        checkAuth(); // Verifica token antes de eliminar capítulos
         if ($this->model->deleteChaperSeason($req)) {
             $this->view->response(["message" => "Capítulos eliminados con éxito"], 200);
         } else {
