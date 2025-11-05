@@ -15,6 +15,17 @@ Este proyecto implementa una API RESTful para gestionar **temporadas** y **capí
 
 ---
 
+## ✅ Opcionales implementados
+
+- 🔐 Autenticación por Token (JWT)
+  - Login con `POST /login` que devuelve un token válido por 1 hora
+  - Rutas protegidas con middleware `checkAuth()` en capítulos y temporadas
+  - Testeable desde POSTMAN con header `Authorization: Bearer <token>`
+
+- 📄 Paginado
+  - `GET /season` y `GET /chapters` aceptan `limit` y `page`
+  - Permite controlar la cantidad de resultados por página
+
 ## 📂 Endpoints - Temporadas
 
 ### 🔹 GET `/api/temporadas`
