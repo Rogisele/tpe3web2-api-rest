@@ -1,43 +1,31 @@
 <?php
-require_once './app/Apiviews/apiview.php';
-require_once './app/Apimodels/user.api.model.php';
-require_once './auth/jwt.php';
+require_once './database/config.php';
 
-class UserApiController {
-    private $model;
-    private $view;
-    private $data;
+class UserModel {
+    private $db;
 
     public function __construct() {
-        $this->model = new UserModel();
-        $this->view = new ApiView();
-        $this->data = file_get_contents("php://input");
+        try {
+            $this->db = new PDO(
+                'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME,
+                DB_USER,
+                DB_PASS,
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+            );
+        } catch (PDOException $e) {
+            die("Error de conexión a la base de datos: " . $e->getMessage());
+        }
     }
 
-    private function getData() {
-        return json_decode($this->data);
-    }
-
-    public function login() {
-        $data = $this->getData();
-
-        if (!isset($data->usuario) || !isset($data->contraseña)) {
-            return $this->view->response(["error" => "Faltan datos"], 400);
-        }
-
-        $user = $this->model->getUserByUsername($data->usuario);
-
-        if ($user && password_verify($data->contraseña, $user->contraseña)) {
-            $payload = [
-                "id" => $user->id,
-                "usuario" => $user->Usuario,
-                "exp" => time() + 3600 // Token válido por 1 hora
-            ];
-            $token = createJWT($payload);
-            return $this->view->response(["token" => $token], 200);
-        } else {
-            return $this->view->response(["error" => "Credenciales inválidas"], 401);
-        }
+    /**
+     * Obtiene un usuario por nombre de usuario (campo 'Usuario')
+     * @param string $username
+     * @return object|null
+     */
+    public function getUserByUsername($username) {
+        $query = $this->db->prepare("SELECT * FROM usuarios WHERE Usuario = ?");
+        $query->execute([$username]);
+        return $query->fetch(PDO::FETCH_OBJ);
     }
 }
 ?>
