@@ -1,102 +1,79 @@
-
 <?php
-require_once './app/Apiviews/apiview.php';
-require_once './app/Apimodels/chapters.model.php';
-require_once './libs/request.php';
-class PerroController {
-    private $model;
-    private $view;
-    private $data;
-    
+require_once './database/config.php';
+
+class ChaptersModel {
+    protected $db;
+
     public function __construct() {
-        $this->model = new ChaptersModel();
-        $this->view = new ApiView();
-        $this->data = file_get_contents("php://input");
+        $this->db = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASS);
+        $this->_deploy();
     }
 
-    function getData(){
-        return json_decode($this->data);
-    }
+    private function _deploy() {
+        // Verifica si existen tablas, y si no, las crea
+        $query = $this->db->query('SHOW TABLES');
+        $tables = $query->fetchAll();
+        if (count($tables) == 0) {
+            $sql = <<<END
+            CREATE TABLE IF NOT EXISTS capitulos (
+            ID_capitulos INT AUTO_INCREMENT PRIMARY KEY,
+            Titulo VARCHAR(255) NOT NULL,
+            Descripción TEXT,
+            ID_temporada_fk INT,
+            FOREIGN KEY (ID_temporada_fk) REFERENCES temporadas(ID_temporada) ON DELETE CASCADE
+        );
+        END;
 
-    public function getAll($orderBy = 'Titulo', $order = 'asc') {
-    // Validar el campo de ordenación
-    $allowedFields = ['Titulo', 'Descripcion', 'Personajes', 'ID_temporada_fk '];
-    if (!in_array($orderBy, $allowedFields)) {
-        $orderBy = 'Titulo'; // Campo por defecto
-    }
-
-    // Validar la dirección de orden
-    if (!is_string($order)) {
-        $order = 'asc';
-    } else {
-        $order = strtolower($order);
-        if ($order !== 'asc' && $order !== 'desc') {
-            $order = 'asc';
-        }
-    }
-
-    // Obtener los capitulos ordenados
-    $chapters = $this->model->getAllChapters($orderBy, $order);
-    if ($chapters) {
-        $this->view->response($chapters, 200);
-    } else {
-        $this->view->response(["message" => "No se encontraron capitulos"], 404);
+        $this->db->query($sql);
     }
 }
 
+
+    // Obtiene todos los capitulos, con opción de ordenar por cualquier campo
+
+        public function getAllChapters($orderBy, $order) {
+            $query = $this->db->prepare("SELECT * FROM capitulos ORDER BY $orderBy $order");
+            $query->execute();
+            return $query->fetchAll(PDO::FETCH_OBJ);
+        }
     
-    /**
-     * GET /capitulos/{id} - Obtiene un capitulo específico por ID.
-     * @param int $id ID del capitulo.
-     */
-    public function getById($req) {
-        $chapter = $this->model->getChapterById($req);
-        if ($chapter) {
-            $this->view->response($chapter, 200);
-        } else {
-            $this->view->response(["message" => "Capitulo no encontrado"], 404);
-        }
-    }
-
-    /**
-     * POST /capitulos - Agrega un nuevo capitulo.
-     */
-    public function add() {
-        $data = $this->getData();
-       if (isset($data->Titulo) && isset($data->Descripcion)) {
-            $newId = $this->model->addChapter($data);
-            $this->view->response(["message" => "Capitulo creado con éxito", "id" => $newId], 201);
-        } else {
-            $this->view->response(["message" => "Datos incompletos"], 400);
-        }
-    }
-
-    /**
-     * PUT /capitulos/{id} - Actualiza un capitulo específico por ID.
-     * @param int $id ID del capitulo.
-     */
-    public function update($req) {
+    // Obtiene un capitulos específico por ID
+    public function getChapterById($req) {
         $id = $req->params->id;
-        // verifico que exista el perro
-        $chapter = $this->model->getChapterById($req);
-        if (!$chapter) {
-            return $this->view->response("El capitulo con el id=$id no existe", 404);
-        }
-
-        if ($this->model->updateChapter($req)) {
-            $this->view->response(["message" => "Capitulo actualizado con éxito"], 200);
-        } else {
-            $this->view->response(["message" => "Datos inválidos o capitulo no encontrado"], 400);
-        }
+        $query = $this->db->prepare('SELECT * FROM capitulos WHERE ID_capitulos = ?');
+        $query->execute([$id]);
+        return $query->fetch(PDO::FETCH_OBJ);
     }
 
-    function delete($req){
+    // Agrega un nuevo capitulo
+    public function addChapter($data) {
+        $query = $this->db->prepare("INSERT INTO capitulos(Titulo, Descripcion,ID_temporada_fk) VALUES(?,?,?)");
+        $query->execute([
+            $data->Titulo,
+            $data->Descripcion,
+            $data->ID_temporada_fk,            
+        ]);
+        return $this->db->lastInsertId();
+    }
+
+    // Actualiza un capitulo específico por ID
+    public function updateChapter($req) {
         
-        if ($this->model->delete($req)) {
-            $this->view->response(["message" => "Capitulo eliminado con éxito"], 200);
-        } else {
-            $this->view->response(["message" => "Datos inválidos o capitulo no encontrado"], 400);
-        }
+        $query = $this->db->prepare('UPDATE capitulos SET Titulo = ?, Descripcion = ?, ID_temporada_fk = ? WHERE ID_capitulos = ?');
+        $result = $query->execute([
+            $req->body->Titulo,
+            $req->body->Descripcion,
+            $req->body->ID_temporada_fk,
+            $req->params->id
+        ]);
+        return $result;
+    }
+
+    // Elimina un capitulo por ID
+    public function delete($req) {
+        $id = $req->params->id;
+        $query = $this->db->prepare('DELETE FROM capitulos WHERE ID_capitulos = ?');
+        return $query->execute([$id]);
     }
 }
 ?>
