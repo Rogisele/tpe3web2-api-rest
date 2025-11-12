@@ -1,8 +1,7 @@
 <?php
 require_once './app/Apimodels/seasons.model.php';
-require_once './app/Apiviews/apiview.php';
+require_once './app/views/Apiview.php';
 require_once './app/Apimodels/chapters.model.php';
-require_once './libs/auth.middleware.php';
 
 class SeasonController {
 
@@ -20,6 +19,16 @@ class SeasonController {
 
     function getData() {
         return json_decode($this->data);
+    }
+
+    // ✅ Nuevo método requerido por el router
+    function getAll($req, $res) {
+        $seasons = $this->model->getAll();
+        if ($seasons) {
+            $this->view->response($seasons, 200);
+        } else {
+            $this->view->response(["message" => "No se encontraron temporadas"], 404);
+        }
     }
 
     // ✅ Público
@@ -44,7 +53,6 @@ class SeasonController {
 
     // 🔐 Protegido
     function addSeason() {
-        checkAuth(); // Verifica token antes de crear
         $data = $this->getData();
         if (isset($data->Nombre) && isset($data->Fecha_estreno) && isset($data->Productora) && isset($data->imagen)) {
             $newId = $this->model->addSeason($data);
@@ -56,25 +64,32 @@ class SeasonController {
 
     // 🔐 Protegido
     function updateSeason($req) {
-        checkAuth(); // Verifica token antes de modificar
-        $id = $req->params->id;
-        $season = $this->model->listCategoriesById($req);
-        if (!$season) {
-            return $this->view->response("La temporada con el id=$id no existe", 404);
-        }
-
-        $req->body = $this->getData(); // Pasa datos al modelo
-
-        if ($this->model->updateSeason($req)) {
-            $this->view->response(["message" => "Temporada actualizada con éxito"], 200);
-        } else {
-            $this->view->response(["message" => "Datos inválidos o temporada no encontrada"], 400);
-        }
+    $id = $req->params->id;
+    $season = $this->model->listCategoriesById($req);
+    if (!$season) {
+        return $this->view->response("La temporada con el id=$id no existe", 404);
     }
+
+    $data = $this->getData();
+    if (!$data) {
+        return $this->view->response(["message" => "No se recibió cuerpo JSON válido"], 400);
+    }
+
+    if (!isset($data->Nombre) || !isset($data->Fecha_estreno) || !isset($data->Productora) || !isset($data->imagen)) {
+        return $this->view->response(["message" => "Faltan campos obligatorios"], 400);
+    }
+
+    $req->body = $data;
+
+    if ($this->model->updateSeason($req)) {
+        $this->view->response(["message" => "Temporada actualizada con éxito"], 200);
+    } else {
+        $this->view->response(["message" => "Datos inválidos o temporada no encontrada"], 400);
+    }
+}
 
     // 🔐 Protegido
     function deleteSeason($req) {
-        checkAuth(); // Verifica token antes de eliminar
         $this->deleteChaperSeason($req);
         if ($this->model->deleteSeason($req)) {
             $this->view->response(["message" => "Temporada eliminada con éxito"], 200);
@@ -85,7 +100,6 @@ class SeasonController {
 
     // 🔐 Protegido
     function deleteChaperSeason($req) {
-        checkAuth(); // Verifica token antes de eliminar capítulos
         if ($this->model->deleteChaperSeason($req)) {
             $this->view->response(["message" => "Capítulos eliminados con éxito"], 200);
         } else {
