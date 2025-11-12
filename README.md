@@ -17,79 +17,75 @@ Este proyecto implementa una API RESTful para gestionar **temporadas** y **capí
 
 ## ✅ Opcionales implementados
 
-- 🔐 Autenticación por Token (JWT)
-  - Login con `POST /login` que devuelve un token válido por 1 hora
-  - Rutas protegidas con middleware `checkAuth()` en capítulos y temporadas
-  - Testeable desde POSTMAN con header `Authorization: Bearer <token>`
-
 - 📄 Paginado
   - `GET /season` y `GET /chapters` aceptan `limit` y `page`
   - Permite controlar la cantidad de resultados por página
 
 ## 📂 Endpoints - Temporadas
 
-### 🔹 GET `/api/temporadas`
+### 🔹 GET `/api/seasons`
 
-Lista todas las temporadas. Permite ordenamiento, filtrado y paginación.
-
-**Parámetros opcionales:**
-
-| Parámetro     | Descripción                                      | Ejemplo              |
-|---------------|--------------------------------------------------|----------------------|
-| `order_by`    | Campo por el que ordenar                        | `Nombre`, `Fecha_estreno` |
-| `order`       | Dirección de ordenamiento                       | `ASC`, `DESC`        |
-| `Nombre`      | Filtrar por nombre exacto                       | `Temporada 3`        |
-| `Productora`  | Filtrar por productora exacta                   | `BBC Studios`        |
-| `limit`       | Cantidad de resultados por página               | `5`                  |
-| `page`        | Número de página                                | `2`                  |
-
-**Ejemplo:**
-
-GET /api/temporadas?order_by=Fecha_estreno&order=DESC&limit=5&page=2
-
-**Respuesta:**
-```json
-[
-  {
-    "ID_temporada": 5,
-    "Nombre": "Temporada 5",
-    "Fecha_estreno": "2022-02-27",
-    "Productora": "BBC Studios",
-    "imagen": "imagen5.jpg"
-  }
-]
-
-
-
-## 📂 Endpoints - Capítulos
-### 🔹 GET /api/capitulos
-Lista todos los capítulos. Permite ordenamiento por campos específicos.
-Parámetros opcionales:
-|  |  |  | 
-| order_by |  | TituloDescripcion | 
-| order |  | ASCDESC | 
-
+Lista todas las temporadas
 
 Ejemplo:
-GET /api/capitulos?order_by=Titulo&order=DESC
+GET tpe3web2-api-rest/api/seasons
 
+
+### 🔹 GET /api/season/{id}
+Obtiene una temporada específica por su ID.
+Ejemplo:
+GET tpe3web2-api-rest/api/season/3
 
 Respuesta:
-[
-  {
-    "ID_capitulos": 12,
-    "Titulo": "El regreso",
-    "Descripcion": "Capítulo final de la temporada",
-    "ID_temporada_fk": 3
-  }
-]
+{"ID_temporada":3,
+"Nombre":"Peaky Blinders",
+"Fecha_estreno":"2013-09-10",
+"Productora":"BBC Studios, Caryn Mandabach Productions y Tiger Aspect Productions",
+"imagen":"https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcR_cruxvYUrdnxvkziGe4DVWeBnJtEEJCwn8IV_axycdZf7R-9ibsTude_3jOdDLw-njfKW2Q-YRfnhraiYnNWb0SSeNgDoF6oiORAv9-wM"}
+
+### 🔹 POST /api/season
+Agrega una nueva tempora. Requiere 	Nombre, Fecha_estreno,Productora e imagen.
+ Ejemplo:
+ POST tpe3web2-api-rest/api/season
+ 
+ Body(JSON)
+ {"Nombre":"Nuevo nombre",
+ "Fecha_estreno":"Nueva fecha",
+ "Productora":"Nueva productora",
+ "imagen":"link nueva imagen"}
+ 
+ Respuesta:
+{
+  "message": "temporada creada con éxito",
+  "id": 13
+}
+### 🔹 PUT /api/season/{id}
+
+Actualiza un capítulo existente por ID.
+Ejemplo tpe3web2-api-rest/api/season/10
 
 
+ Body(JSON)
+ {"Nombre":"Nuevo nombre",
+ "Fecha_estreno":"fecha actualizada",
+ "Productora":"productora actualizada",
+ "imagen":"link nueva imagen actualizada"}
 
-### 🔹 GET /api/capitulos/{id}
+ Respuesta:
+{
+  "message": "teamporada actualizada con éxito"
+}
+
+## 📂 Endpoints - Capítulos
+### 🔹 GET /api/chapters
+Lista todos los capítulos. Permite ordenamiento por campos específicos.
+Ejemplo:
+GET tpe3web2-api-rest/api/chapters
+
+### 🔹 GET /api/chapter/{id}
 Obtiene un capítulo específico por su ID.
 Ejemplo:
-GET /api/capitulos/12
+GET tpe3web2-api-rest/api/chapter/12
 
 
 Respuesta:
@@ -102,12 +98,15 @@ Respuesta:
 
 
 
-### 🔹 POST /api/capitulos
-Agrega un nuevo capítulo. Requiere Titulo, Descripcion e ID_temporada_fk.
+
+### 🔹 POST /api/chapter
+Agrega un nuevo capítulo. Requiere Titulo, Descripcion, Personajes e ID_temporada_fk.
+Ejemplo tpe3web2-api-rest/api/chapter
 Body (JSON):
 {
   "Titulo": "Nuevo comienzo",
   "Descripcion": "Primer capítulo de la nueva temporada",
+  "Personajes": "Tomy y Ada Shelby",
   "ID_temporada_fk": 4
 }
 
@@ -120,12 +119,16 @@ Respuesta:
 
 
 
-### 🔹 PUT /api/capitulos/{id}
+### 🔹 PUT /api/chapter/{id}
+
 Actualiza un capítulo existente por ID.
+Ejemplo tpe3web2-api-rest/api/chapter/10
+
 Body (JSON):
 {
   "Titulo": "Nuevo título",
   "Descripcion": "Descripción actualizada",
+  "Personajes": "Personajes actualizados",
   "ID_temporada_fk": 4
 }
 
@@ -136,43 +139,8 @@ Respuesta:
 }
 
 
-
-### 🔹 DELETE /api/capitulos/{id}
-Elimina un capítulo por su ID.
-Respuesta:
-{
-  "message": "Capitulo eliminado con éxito"
-}
-
-
-
 ## 🧪 Testing con POSTMAN
 Podés importar los endpoints en POSTMAN y probar:
-- Filtros combinados (GET /api/temporadas?Productora=BBC Studios&limit=3)
 - Validación de errores (POST /api/capitulos sin campos obligatorios)
 - Respuestas en distintos estados (200, 400, 404)
 
-## 📌 Notas finales
-- La base de datos se autogenera si no existen tablas (_deploy() en los modelos).
-- Las relaciones están normalizadas: cada capítulo pertenece a una temporada (ID_temporada_fk).
-- El proyecto está preparado para escalar y modularizarse fácilmente.
-🧪 Paso 3: Testeo en POSTMAN
-- URL: http://localhost/tpe3web2-api-rest/login
-- Método: POST
-- Body (raw JSON):
-{
-  "usuario": "webadmin",
-  "contraseña": "webadmin"
-}
-
-
-- Respuesta esperada:
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-
-
-
-🛡️ Paso 4: Usar el token en endpoints protegidos
-En POSTMAN, agregá este header:
-Authorization: Bearer tu_token_jwt
