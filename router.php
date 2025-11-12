@@ -2,7 +2,6 @@
 require_once './libs/router.php';
 require_once './app/Apicontrollers/chapter.api.controller.php';
 require_once './app/Apicontrollers/season.api.controller.php';
-require_once './app/Apicontrollers/user.api.controller.php';
 
 // crea el router
 $router = new Router();
@@ -23,9 +22,6 @@ $router->addRoute('chapter', 'POST', 'ChapterController', 'add');
 $router->addRoute('chapter/:id', 'GET', 'ChapterController', 'getById');
 $router->addRoute('chapter/:id', 'PUT', 'ChapterController', 'update');
 $router->addRoute('chapter/:id', 'DELETE', 'ChapterController', 'delete');
-
-// Usuarios (opcional para login/token)
-$router->addRoute('login', 'POST', 'UserApiController', 'login'); // si implementás login
 
 // rutea
 $router->route($_GET['resource'], $_SERVER['REQUEST_METHOD']);
