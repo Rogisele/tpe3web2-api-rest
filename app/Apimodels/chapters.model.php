@@ -93,7 +93,7 @@ class ChaptersModel {
         $result = $query->execute([
             $req->body->Titulo,
             $req->body->Descripcion,
-            $req->body->Descripcion,
+            $req->body->Personajes,
             $req->body->ID_temporada_fk,
             $req->params->id
         ]);
