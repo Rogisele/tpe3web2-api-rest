@@ -15,11 +15,6 @@ Este proyecto implementa una API RESTful para gestionar **temporadas** y **capí
 
 ---
 
-## ✅ Opcionales implementados
-
-- 📄 Paginado
-  - `GET /season` y `GET /chapters` aceptan `limit` y `page`
-  - Permite controlar la cantidad de resultados por página
 
 ## 📂 Endpoints - Temporadas
 
