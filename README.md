@@ -88,6 +88,7 @@ Respuesta:
   "ID_capitulos": 12,
   "Titulo": "El regreso",
   "Descripcion": "Capítulo final de la temporada",
+  "Personajes": "Tommy Shaelby y sus hermanos",
   "ID_temporada_fk": 3
 }
 
@@ -132,6 +133,10 @@ Respuesta:
 {
   "message": "Capitulo actualizado con éxito"
 }
+ACLARACION: Edita correctamente el capitulo pero revisamos con Juan el dia miercoles en la ultima clase practica antes de la entrega y no encontramos porque a veces da este mensaje correctamente:
+{
+  "message": "Capitulo actualizado con éxito"
+}, y otras un error en la FOREIGN KEY (`ID_temporada_fk`). Corroboramos que estemos editando una clave foranea correcta y de todas maneras seguia tirando dicho error.
 
 
 ## 🧪 Testing con POSTMAN
