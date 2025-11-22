@@ -133,6 +133,10 @@ Respuesta:
 {
   "message": "Capitulo actualizado con éxito"
 }
+
+
+
+
 ACLARACION: Edita correctamente el capitulo pero revisamos con Juan el dia miercoles en la ultima clase practica antes de la entrega y no encontramos porque a veces da este mensaje correctamente:
 {
   "message": "Capitulo actualizado con éxito"
